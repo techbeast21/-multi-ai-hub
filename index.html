@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unified Multi-AI Scholar Hub</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: false, theme: 'dark' });</script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121214; color: #e1e1e6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+    .portal-box { background: #202024; border: 1px solid #29292e; border-radius: 8px; padding: 30px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
+    .chat-container { width: 100%; max-width: 750px; display: none; flex-direction: column; gap: 20px; align-self: flex-start; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.85em; color: #a8a8b3; }
+    .input-box { display: flex; gap: 10px; }
+    input { padding: 14px; border-radius: 6px; border: 1px solid #29292e; background: #121214; color: #fff; font-size: 16px; }
+    .workspace-input { background: #202024; flex: 1; }
+    button { padding: 14px 28px; border: none; background: #04d361; color: #fff; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    button:disabled { background: #1c4c32; cursor: not-allowed; }
+    .response-card { background: #202024; border-radius: 8px; padding: 25px; border: 1px solid #29292e; display: none; }
+    .topic-image { width: 100%; max-height: 280px; object-fit: cover; border-radius: 6px; margin-bottom: 20px; display: none; border: 1px solid #29292e; }
+    .diagram-box { background: #121214; padding: 15px; border-radius: 6px; border: 1px solid #29292e; margin: 20px 0; overflow-x: auto; display: flex; justify-content: center; }
+    .paper-list { margin-top: 25px; padding-top: 15px; border-top: 1px solid #29292e; }
+    .paper-item { display: block; color: #4facfe; text-decoration: none; margin-bottom: 10px; font-size: 0.95em; }
+    .paper-item:hover { text-decoration: underline; }
+    .loading { color: #a8a8b3; font-style: italic; display: none; margin-top: 5px; }
+    .user-badge { font-size: 0.9em; color: #a8a8b3; margin: 0; display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .logout-btn { background: transparent; color: #f75a68; padding: 4px 8px; font-size: 0.85em; border: 1px solid #f75a68; }
+    .logout-btn:hover { background: #f75a68; color: #fff; }
+    .quota-badge { background: #29292e; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; color: #fff; border: 1px solid #38383d; }
+    .paywall-modal { display: none; background: linear-gradient(135deg, #2b1a4a 0%, #202024 100%); border: 2px solid #984fff; border-radius: 8px; padding: 30px; text-align: center; margin-top: 20px; flex-direction: column; gap: 15px; align-items: center; }
+    .upgrade-btn { background: linear-gradient(90deg, #984fff 0%, #6825cd 100%); width: 100%; max-width: 250px; box-shadow: 0 4px 15px rgba(152, 79, 255, 0.4); }
+    .upgrade-btn:hover { filter: brightness(1.2); }
+  </style>
+</head>
+<body>
+
+<div class="portal-box" id="authPortal">
+  <h2 style="margin: 0 0 10px 0; text-align: center;">Create Account</h2>
+  <p style="margin: 0 0 10px 0; font-size: 0.9em; color: #a8a8b3; text-align: center;">Register your credentials to access the multi-AI engine.</p>
+  <div class="input-group">
+    <label for="userName">Full Name</label>
+    <input type="text" id="userName" placeholder="John Doe">
+  </div>
+  <div class="input-group">
+    <label for="userEmail">Email Address</label>
+    <input type="email" id="userEmail" placeholder="name@company.com">
+  </div>
+  <div class="input-group">
+    <label for="userPassword">Password</label>
+    <input type="password" id="userPassword" placeholder="••••••••">
+  </div>
+  <button style="margin-top: 10px;" onclick="handleRegistration()">Get Free Access</button>
+</div>
+
+<div class="chat-container" id="mainWorkspace">
+  <div class="user-badge">
+    <span>Active User: <strong id="loggedInUser" style="color: #04d361;"></strong></span>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="quota-badge" id="quotaDisplay">Free Queries Left: 5</span>
+      <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+  </div>
+  
+  <h2>Unified Intelligence Workspace</h2>
+  
+  <div class="input-box" id="searchInterface">
+    <input type="text" id="queryInput" class="workspace-input" placeholder="Search a topic, process, or cycle layout (e.g. Carbon Cycle)...">
+    <button id="searchBtn" onclick="submitQuery()">Query Hub</button>
+  </div>
+  <div id="loadingText" class="loading">Parsing multi-agent layers, mapping workflows, and collecting open academic files...</div>
+
+  <div class="paywall-modal" id="paywallContainer">
+    <h3 style="margin: 0; color: #984fff; font-size: 1.4em;">🔒 Premium Limit Reached</h3>
+    <p style="margin: 0; font-size: 0.95em; color: #c4c4cc; max-width: 500px;">
+      You've standard-consumed your 5 free introductory tokens. Upgrade to a Business Pro account to unlock infinite cross-model searches, advanced cycles rendering, and full Google Scholar integration.
+    </p>
+    <button class="upgrade-btn" onclick="triggerCheckout()">Upgrade for $9.99/mo</button>
+  </div>
+
+  <div class="response-card" id="outputCard">
+    <img id="displayImage" class="topic-image" alt="Visual Concept Mapping">
+    <div id="textReply" style="line-height: 1.7; white-space: pre-line;"></div>
+    <div id="diagramContainer" class="diagram-box" style="display: none;"></div>
+    
+    <div class="paper-list" id="papersBox">
+      <h4 style="margin: 0 0 12px 0; color: #a8a8b3;">Validated Research Literature:</h4>
+      <div id="papersContainer"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MAX_FREE_QUOTA = 5;
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const sessionUser = localStorage.getItem('app_user_name');
+    if (sessionUser) {
+      displayWorkspace(sessionUser);
+    }
+  });
+
+  function handleRegistration() {
+    const name = document.getElementById('userName').value.trim();
+    const email = document.getElementById('userEmail').value.trim();
+    const pass = document.getElementById('userPassword').value.trim();
+
+    if (!name || !email || !pass) {
+      alert("Please enter all credentials to register your free account.");
+      return;
+    }
+
+    localStorage.setItem('app_user_name', name);
+    localStorage.setItem('app_user_email', email);
+    
+    if (localStorage.getItem('used_queries') === null) {
+      localStorage.setItem('used_queries', '0');
+    }
+    
+    displayWorkspace(name);
+  }
+
+  function displayWorkspace(username) {
+    document.getElementById('authPortal').style.display = 'none';
+    document.getElementById('loggedInUser').innerText = username;
+    
+    const workspace = document.getElementById('mainWorkspace');
+    workspace.style.display = 'flex';
+    document.body.style.alignItems = 'flex-start';
+    
+    updateQuotaUI();
+  }
+
+  function updateQuotaUI() {
+    const used = parseInt(localStorage.getItem('used_queries') || '0', 10);
+    const remaining = Math.max(0, MAX_FREE_QUOTA - used);
+    
+    document.getElementById('quotaDisplay').innerText = `Free Queries Left: ${remaining}`;
+    
+    if (remaining <= 0) {
+      document.getElementById('searchInterface').style.display = 'none';
+      document.getElementById('paywallContainer').style.display = 'flex';
+    }
+  }
+
+  function triggerCheckout() {
+    alert("Payment Sandbox: Redirecting user to Stripe payment gateway link...");
+  }
+
+  function handleLogout() {
+    const used = localStorage.getItem('used_queries');
+    localStorage.clear();
+    if (used) localStorage.setItem('used_queries', used);
+    location.reload();
+  }
+
+  function submitQuery() {
+    const used = parseInt(localStorage.getItem('used_queries') || '0', 10);
+    if (used >= MAX_FREE_QUOTA) {
+      updateQuotaUI();
+      return;
+    }
+
+    const inputVal = document.getElementById('queryInput').value;
+    const loader = document.getElementById('loadingText');
+    const card = document.getElementById('outputCard');
+    const btn = document.getElementById('searchBtn');
+    const diagContainer = document.getElementById('diagramContainer');
+
+    if (!inputVal) return;
+
+    card.style.display = 'none';
+    diagContainer.style.display = 'none';
+    loader.style.display = 'block';
+    btn.disabled = true;
+
+    fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: inputVal })
+    })
+    .then(res => res.json())
+    .then(async data => {
+      loader.style.display = 'none';
+      btn.disabled = false;
+
+      if(data.error) {
+        alert("Ecosystem Error: " + data.error);
+        return;
+      }
+
+      const currentUsage = parseInt(localStorage.getItem('used_queries') || '0', 10);
+      localStorage.setItem('used_queries', (currentUsage + 1).toString());
+      updateQuotaUI();
+
+      let rawText = data.reply;
+      const mermaidRegex = /```mermaid([\s\(\S\)]*?)```/g;
+      const match = mermaidRegex.exec(rawText);
+      
+      if (match && match[1]) {
+        rawText = rawText.replace(mermaidRegex, '');
+        const mermaidCode = match[1].trim();
+        
+        diagContainer.innerHTML = `<div class="mermaid">${mermaidCode}</div>`;
+        diagContainer.style.display = 'flex';
+        
+        try {
+          await mermaid.run();
+        } catch(e) {
+          console.error("Diagram structure error:", e);
+          diagContainer.style.display = 'none';
+        }
+      }
+
+      document.getElementById('textReply').innerText = rawText.trim();
+
+      if (data.imageSearchQuery) {
+        const imgEl = document.getElementById('displayImage');
+        imgEl.src = `https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=750&q=80&sig=${Math.random()}&q=${encodeURIComponent(data.imageSearchQuery)}`;
+        imgEl.style.display = 'block';
+      }
+
+      const papersBox = document.getElementById('papersBox');
+      const container = document.getElementById('papersContainer');
+      container.innerHTML = '';
+      
+      if (data.papers && data.papers.length > 0) {
+        papersBox.style.display = 'block';
+        data.papers.forEach(paper => {
+          const a = document.createElement('a');
+          a.className = 'paper-item';
+          a.href = paper.link.startsWith('http') ? paper.link : `https://doi.org/${paper.link}`;
+          a.target = '_blank';
+          a.innerText = `📚 ${paper.title} (${paper.author})`;
+          container.appendChild(a);
+        });
+      } else {
+        papersBox.style.display = 'none';
+      }
+
+      card.style.display = 'block';
+    })
+    .catch(err => {
+      console.error(err);
+      loader.style.display = 'none';
+      btn.disabled = false;
+      alert("System connection timeout.");
+    });
+  }
+</script>
+
+</body>
+</html>
